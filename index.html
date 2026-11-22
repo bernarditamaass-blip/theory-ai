@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080d14"><link rel="manifest" href="./manifest.webmanifest">
+<title>THEORY // AI</title>
+<style>
+:root{color-scheme:dark;--bg:#080d14;--panel:#0d1723;--line:#24435f;--blue:#55bdf5;--txt:#d8eafa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,Segoe UI,sans-serif;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#room{height:48%;min-height:245px;position:relative;background:radial-gradient(ellipse at 48% 80%,#1a3045,#090f18 75%);border-bottom:1px solid var(--line);overflow:hidden}
+#room.school{background:radial-gradient(ellipse at 48% 80%,#1b3a2d,#09130e 75%)}
+#room:before{content:"";position:absolute;inset:0;opacity:.15;background-image:linear-gradient(#3475a2 1px,transparent 1px),linear-gradient(90deg,#3475a2 1px,transparent 1px);background-size:32px 32px;transform:perspective(330px) rotateX(58deg) scale(1.3);transform-origin:bottom}
+.hud{position:absolute;z-index:3;top:10px;padding:7px 10px;background:#091522df;border:1px solid var(--line);border-radius:9px;color:#8bd4ff;font-size:11px}
+#loc{left:10px}#moodbox{right:10px;display:flex;gap:7px;align-items:center}#mood{width:70px;accent-color:var(--blue)}
+svg{position:absolute;inset:4% 0 0;width:100%;height:96%;filter:drop-shadow(0 10px 12px #0008)}
+.obj{cursor:pointer;transition:filter .2s}.obj:hover{filter:brightness(1.35) drop-shadow(0 0 5px var(--blue))}.off{opacity:.25;filter:grayscale(1)}
+#theory{transform-box:fill-box;transform-origin:center;animation:float 3.8s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-3px)}}.busy{animation:float .3s infinite!important}
+#chat{flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(#0b131e,#070b10)}
+#msgs{flex:1;overflow:auto;padding:13px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:86%;padding:9px 12px;border-radius:11px;line-height:1.42;white-space:pre-wrap;overflow-wrap:anywhere}
+.user{align-self:flex-end;background:#183653;border:1px solid #32658d}.bot{align-self:flex-start;background:#101e2c;border:1px solid #254661}.sys{align-self:center;color:#7394ad;font-size:11px;font-style:italic}
+#files{display:flex;gap:6px;overflow:auto;padding:6px 12px;border-top:1px solid #172b3e;min-height:36px}
+.file{white-space:nowrap;color:#a9dfff;font-size:11px;border:1px solid #2b506e;border-radius:7px;padding:4px 7px;cursor:pointer}
+#bar{display:flex;gap:7px;padding:9px 10px;border-top:1px solid #1d3449;background:#090f17}
+button,input{font:inherit;border-radius:8px}button{border:1px solid #32658d;background:#123554;color:#e7f6ff;padding:9px 11px;cursor:pointer}button:disabled{opacity:.5;cursor:wait}
+#mode{min-width:100px}#prompt{flex:1;min-width:0;background:#111e2b;color:white;border:1px solid #2b4963;padding:9px;outline:none}#prompt:focus{border-color:var(--blue)}
+#send{background:#0878b5}#upload{display:none}
+@media(min-width:760px){body{max-width:1050px;margin:auto;border-inline:1px solid #172b3e}#room{height:54%}#msgs{padding:18px}#bar{padding:12px}}
+</style>
+
+<style>
+:root{--bg:#070b12;--panel:#0d1723;--line:#24435f;--blue:#55bdf5;--txt:#d8eafa;--muted:#7894aa}
+body{max-width:none!important;margin:0!important;border:0!important;display:grid;grid-template-columns:260px minmax(0,1fr);height:100dvh;background:radial-gradient(ellipse at 70% 0%,#14283b 0,#070b12 55%)}
+#sidebar{grid-column:1;grid-row:1;display:flex;flex-direction:column;min-height:0;background:linear-gradient(180deg,#0c1724,#080e17);border-right:1px solid #20384d;padding:14px;gap:12px;z-index:5;transition:width .2s,padding .2s;overflow:hidden}
+#workspace{grid-column:2;grid-row:1;display:flex;flex-direction:column;min-width:0;min-height:0;height:100dvh}
+#sideTop{display:flex;align-items:center;justify-content:space-between;gap:8px}.brand{font-weight:800;letter-spacing:2px;color:#bce7ff;font-size:13px}.brand small{display:block;color:#678aa4;font-size:9px;letter-spacing:3px;margin-top:3px}
+#newChat{width:100%;background:linear-gradient(135deg,#12517a,#0c3453);border-color:#3477a2;text-align:left}
+.sideLabel{font-size:10px;letter-spacing:1.5px;color:#66859d;margin:8px 4px 0;text-transform:uppercase}
+#chatList{overflow:auto;display:flex;flex-direction:column;gap:5px;min-height:80px;flex:1}
+.chatItem{display:flex;align-items:center;gap:5px;border:1px solid transparent;border-radius:9px;padding:7px;background:transparent;color:#a9c5d9;text-align:left;min-width:0}
+.chatItem.active{background:#14283a;border-color:#28516d;color:#e3f5ff}.chatTitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:12px}.chatItem button{padding:3px 6px;font-size:11px;background:transparent;border:0;color:#7898af}
+.sideBottom{border-top:1px solid #1d3449;padding-top:10px;display:grid;gap:7px}.sideAction{background:#101e2c;border-color:#25445e;text-align:left;font-size:12px}
+#sidebar.collapsed{width:64px;padding:10px}#sidebar.collapsed .brandText,#sidebar.collapsed #newChat span,#sidebar.collapsed .sideLabel,#sidebar.collapsed #chatList,#sidebar.collapsed .sideBottom span{display:none}#sidebar.collapsed #newChat{text-align:center;padding:10px 0}#sidebar.collapsed .sideBottom button{text-align:center;padding:10px 0}
+#topbar{height:43px;flex:0 0 43px;display:flex;align-items:center;gap:9px;padding:0 12px;background:#09121de8;border-bottom:1px solid #1b3449}
+#topbar button{padding:6px 9px;font-size:12px;background:#101f2e;border-color:#25455f}#currentTitle{font-size:12px;color:#b5d5e9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+#room{height:48%;min-height:220px;flex:0 1 48%;border-bottom:1px solid #24435f;background:radial-gradient(ellipse at 32% 68%,#244d6b66,transparent 35%),radial-gradient(ellipse at 48% 80%,#1a3045,#090f18 75%)}
+#room:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 28% 62%,#5bbcf522,transparent 34%)}
+#theory{filter:drop-shadow(0 0 9px #68caff55) drop-shadow(0 12px 12px #0009)}#screen{filter:drop-shadow(0 0 12px #48baff)}
+#chat{flex:1;min-height:0}#msgs{padding:14px clamp(12px,3vw,28px)}.msg{max-width:min(780px,88%);font-size:13px}.bot{box-shadow:0 5px 18px #0002}
+#bar{padding:9px 12px;align-items:center}#prompt{border-radius:12px}#send{border-radius:10px}button{transition:background .15s,border-color .15s,transform .15s}button:hover{border-color:#61bdec;filter:brightness(1.12)}
+#settingsShade{position:fixed;inset:0;background:#02060bcc;z-index:20;display:none;align-items:center;justify-content:center;padding:14px}#settingsShade.open{display:flex}
+#settings{width:min(520px,100%);max-height:min(88dvh,760px);overflow:auto;background:linear-gradient(160deg,#122235,#09121d);border:1px solid #315b79;border-radius:16px;padding:18px;box-shadow:0 24px 80px #000b}
+.settingsHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.settingsHead h2{font-size:17px;margin:0;color:#dff3ff}.setting{padding:12px 0;border-top:1px solid #1c354a;display:grid;gap:7px}.setting label{font-size:12px;color:#b6d5e8}.setting small{font-size:10px;color:#7895aa;line-height:1.4}.setting input[type=range]{width:100%;accent-color:#55bdf5}.setting select,.setting input[type=text]{width:100%;background:#0a1521;border:1px solid #2b4b64;color:#d9efff;padding:9px;border-radius:8px}.settingRow{display:flex;align-items:center;justify-content:space-between;gap:10px}.settingRow button{font-size:11px;padding:6px 9px}.switch{accent-color:#55bdf5;width:17px;height:17px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:30;background:#10273a;border:1px solid #39749a;color:#dff4ff;padding:9px 13px;border-radius:9px;font-size:11px;display:none;max-width:90vw}
+@media(max-width:680px){body{grid-template-columns:56px minmax(0,1fr)}#sidebar{padding:8px;width:56px}#sidebar .brandText,#sidebar #newChat span,#sidebar .sideLabel,#sidebar #chatList,#sidebar .sideBottom span{display:none}#sidebar #newChat{text-align:center;padding:10px 0}#sidebar .sideBottom button{text-align:center;padding:10px 0}#topbar{padding:0 7px;gap:5px}#topbar button{padding:6px}#room{height:42%;flex-basis:42%;min-height:190px}#loc{font-size:9px}#moodbox{font-size:9px}#mood{width:48px}#bar{gap:5px;padding:7px}#mode{min-width:0;font-size:11px;padding:8px}#pick{padding:8px}#send{padding:8px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<aside id="sidebar"><div id="sideTop"><div class="brand"><span>THEORY</span><small class="brandText">PERSONAL AI</small></div><button id="collapse" title="Plegar barra">‹</button></div><button id="newChat">＋ <span>Nueva conversación</span></button><div class="sideLabel">Conversaciones</div><div id="chatList"></div><div class="sideBottom"><button class="sideAction" id="openSettings">⚙ <span>Ajustes</span></button><button class="sideAction" id="memoryBtn">◈ <span>Memoria</span></button></div></aside><div id="workspace"><div id="topbar"><button id="mobileMenu" title="Mostrar/ocultar historial">☰</button><div id="currentTitle">Nueva conversación</div><button id="voiceToggle" title="Silenciar o activar voz">🔊 Voz</button><button id="stopVoice" title="Detener voz">■</button></div>
+<section id="room">
+ <div class="hud" id="loc">💠 NÚCLEO // CUARTO</div>
+ <div class="hud" id="moodbox">ÁNIMO <b id="moodValue">35%</b><input id="mood" type="range" min="0" max="100" value="35" aria-label="Ánimo de Theory"></div>
+ <svg viewBox="0 0 700 330" role="img" aria-label="Habitación de Theory vista en perspectiva">
+  <defs>
+   <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#14283b"/><stop offset="1" stop-color="#0a1420"/></linearGradient>
+   <linearGradient id="desk" x2="0" y2="1"><stop stop-color="#45617c"/><stop offset="1" stop-color="#17283a"/></linearGradient>
+   <radialGradient id="head" cx="30%" cy="25%"><stop stop-color="#a9d9ff"/><stop offset=".6" stop-color="#477ba7"/><stop offset="1" stop-color="#14263a"/></radialGradient>
+   <linearGradient id="body" x2="1" y2="1"><stop stop-color="#6899c2"/><stop offset=".55" stop-color="#294c6b"/><stop offset="1" stop-color="#102235"/></linearGradient>
+   <radialGradient id="flame"><stop stop-color="#ffd09a"/><stop offset=".5" stop-color="#f97316"/><stop offset="1" stop-color="#7c2d12"/></radialGradient>
+  </defs>
+  <!-- pared del fondo y ventana -->
+  <path d="M75 35 L625 35 L665 230 L35 230Z" fill="url(#wall)" stroke="#294965" stroke-width="2"/>
+  <g id="window" class="obj" onclick="toggle('window')" transform="translate(510 60)">
+   <rect width="105" height="75" rx="3" fill="#102a40" stroke="#70bde9" stroke-width="3"/>
+   <path d="M52 2V73M2 38H103" stroke="#70bde9" stroke-width="2"/>
+   <path d="M5 60Q30 30 52 56T100 24V72H5Z" fill="#1d5270" opacity=".55"/>
+  </g>
+  <!-- estantería detrás de Theory -->
+  <g id="shelf" transform="translate(285 48)">
+   <rect width="205" height="128" rx="3" fill="#101d2b" stroke="#385a78" stroke-width="3"/>
+   <path d="M0 42H205M0 84H205" stroke="#385a78" stroke-width="4"/>
+   <g fill="#315e83"><rect x="14" y="8" width="13" height="31"/><rect x="31" y="3" width="16" height="36"/><rect x="54" y="12" width="12" height="27"/><rect x="105" y="51" width="14" height="30"/><rect x="124" y="46" width="17" height="35"/><rect x="160" y="94" width="15" height="29"/></g>
+   <g fill="#6388a5"><rect x="75" y="10" width="12" height="29"/><rect x="145" y="51" width="12" height="30"/><rect x="22" y="94" width="18" height="29"/></g>
+  </g>
+  <!-- estufa junto a estantería -->
+  <g id="stove" class="obj" onclick="toggle('stove')" transform="translate(620 155)">
+   <rect width="39" height="68" rx="5" fill="#172638" stroke="#58718a" stroke-width="2"/>
+   <rect id="fire" x="7" y="12" width="25" height="31" rx="5" fill="url(#flame)"/>
+   <path d="M8 53H31" stroke="#607f99" stroke-width="3"/>
+  </g>
+  <!-- Theory situado a la izquierda, orientado en diagonal hacia delante/cámara -->
+  <g id="theory">
+   <ellipse cx="190" cy="240" rx="42" ry="8" fill="#0008"/>
+   <path d="M153 238Q154 174 193 172Q232 176 233 238Z" fill="url(#body)" stroke="#70bdf5" stroke-width="2"/>
+   <path d="M178 183L147 213L125 224" fill="none" stroke="#477da8" stroke-width="12" stroke-linecap="round"/>
+   <path d="M178 183L147 213L125 224" fill="none" stroke="#8bcaff" stroke-width="2"/>
+   <ellipse cx="192" cy="139" rx="29" ry="32" transform="rotate(-12 192 139)" fill="url(#head)" stroke="#9bdcff" stroke-width="2"/>
+   <path d="M202 134Q216 136 219 144" fill="none" stroke="#0b1b2a" stroke-width="4" stroke-linecap="round"/>
+   <ellipse cx="181" cy="134" rx="3" ry="4" fill="#b9e8ff"/>
+   <path d="M171 118Q191 104 210 119" fill="none" stroke="#a4d9ff" stroke-width="2" opacity=".7"/>
+  </g>
+  <!-- escritorio en perspectiva hacia la cámara -->
+  <path d="M80 244L550 224L665 296L25 318Z" fill="url(#desk)" stroke="#6385a1" stroke-width="2"/>
+  <path d="M65 307L78 330M612 290L620 330" stroke="#17283a" stroke-width="12"/>
+  <!-- ordenador delante de Theory, inclinado hacia la cámara -->
+  <g id="pc" class="obj" onclick="toggle('pc')" transform="translate(280 204) skewX(-12)">
+   <path d="M0 0L105 -8L105 54L0 64Z" fill="#07121e" stroke="#5abff3" stroke-width="3"/>
+   <path id="screen" d="M7 7L98 0L98 47L7 56Z" fill="#17476b"/>
+   <path d="M-7 66L115 55L129 68L5 82Z" fill="#263e55" stroke="#6c8ba5"/>
+   <path d="M12 69L100 61" stroke="#8bcdf4" opacity=".45"/>
+  </g>
+  <!-- calculadora detrás y al lado del ordenador -->
+  <g id="calc" class="obj" onclick="toggle('calc')" transform="translate(420 220) rotate(-8)">
+   <rect width="39" height="48" rx="4" fill="#203c56" stroke="#8bd5ff" stroke-width="2"/>
+   <rect x="6" y="6" width="27" height="9" fill="#b6e9ff"/>
+   <g fill="#8bb7d4"><circle cx="11" cy="24" r="3"/><circle cx="25" cy="24" r="3"/><circle cx="11" cy="36" r="3"/><circle cx="25" cy="36" r="3"/></g>
+  </g>
+  <!-- papeles y lapicera más cerca de cámara -->
+  <g id="paper" class="obj" onclick="toggle('paper')" transform="translate(465 267) rotate(-7)">
+   <path d="M0 0H82L91 43H8Z" fill="#dce8ed" stroke="#86c8e9"/>
+   <path d="M12 12H68M14 21H72M16 30H61" stroke="#3981aa" stroke-width="2"/>
+  </g>
+  <g id="pen" class="obj" onclick="toggle('pen')" transform="translate(565 270) rotate(22)">
+   <rect width="7" height="47" rx="3" fill="#183b5a" stroke="#8bd5ff"/><path d="M1 4H6" stroke="#e2f5ff" stroke-width="2"/>
+  </g>
+ </svg>
+</section>
+<main id="chat">
+ <div id="msgs"><div class="msg bot">Estoy aquí. No toques mis cosas sin preguntar... o bueno, depende.</div></div>
+ <div id="files" aria-label="Archivos guardados"></div>
+ <div id="bar">
+  <button id="mode" type="button">💬 Hablar</button>
+  <input id="prompt" placeholder="Habla con Theory..." autocomplete="off">
+  <button id="send" type="button">Enviar</button>
+  <button id="pick" type="button" title="Guardar archivo">＋</button>
+  <input id="upload" type="file" multiple>
+ </div>
+</main></div>
+<div id="settingsShade"><section id="settings"><div class="settingsHead"><h2>⚙ Ajustes de THEORY</h2><button id="closeSettings">✕</button></div><div class="setting"><div class="settingRow"><label for="voiceEnabled">Voz activada</label><input class="switch" id="voiceEnabled" type="checkbox" checked></div><small>El chat escrito seguirá funcionando aunque la voz esté apagada.</small></div><div class="setting"><label for="voiceSelect">Voz disponible en este dispositivo</label><select id="voiceSelect"><option value="auto">Automática (según mi ánimo)</option></select><small>Las voces dependen del navegador y del sistema operativo.</small></div><div class="setting"><label for="volume">Volumen: <b id="volumeValue">85%</b></label><input id="volume" type="range" min="0" max="100" value="85"></div><div class="setting"><label for="rate">Velocidad: <b id="rateValue">1.0×</b></label><input id="rate" type="range" min="0.7" max="1.35" step="0.05" value="1"></div><div class="setting"><label for="expressiveness">Expresividad: <b id="expressValue">70%</b></label><input id="expressiveness" type="range" min="0" max="100" value="70"></div><div class="setting"><div class="settingRow"><label for="autoVoice">Cambiar la voz/entonación según mi ánimo</label><input class="switch" id="autoVoice" type="checkbox" checked></div><small>THEORY ajustará voz, ritmo y pausas dentro de lo que permita el navegador.</small></div><div class="setting"><label for="apiMode">Motor de conversación</label><select id="apiMode"><option value="ai">IA local descargable (sin API ni cuotas)</option><option value="local">Respuestas básicas sin descargar modelo</option></select><small>La IA se ejecuta en tu navegador. La primera descarga puede ser grande (varios cientos de MB) y requiere conexión. El rendimiento depende del dispositivo.</small><div class="settingRow"><button id="loadAI" type="button">Descargar / iniciar IA</button><span id="aiStatus" style="font-size:11px;color:#8fcfff">IA sin iniciar</span></div></div><div class="setting"><div class="settingRow"><label>Datos de esta aplicación</label><button id="exportData">Exportar conversaciones</button></div><button id="clearData" style="background:#351b22;border-color:#75404a">Borrar historial y memoria local</button></div></section></div><div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id),KEY='theory-v3',DB='theory-files-v2';
+const defaults={mood:48,place:'CUARTO',objects:{calc:true,pc:true,stove:true,window:true,paper:true,pen:true},memories:['A veces el silencio del cuarto es cómodo.','No me gusta que decidan por mí.'],chats:[],activeChat:null,settings:{voiceEnabled:true,voice:'auto',volume:85,rate:1,expressiveness:70,autoVoice:true,apiMode:'ai'}};
+function read(){try{return Object.assign({},defaults,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch{return structuredClone(defaults)}}
+let state=read(),mode=0,busy=false,voices=[],speech=null,aiWorker=null,aiPending=null,aiStarted=false;if(state.settings.apiMode==='auto'||state.settings.apiMode==='api')state.settings.apiMode='ai';
+function persist(){localStorage.setItem(KEY,JSON.stringify(state));$('mood').value=state.mood;$('moodValue').textContent=state.mood+'%'}
+function current(){return state.chats.find(c=>c.id===state.activeChat)}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function createChat(){let c={id:id(),title:'Nueva conversación',messages:[{role:'assistant',content:'Estoy aquí. ¿Qué pasa?'}],updated:Date.now()};state.chats.unshift(c);state.activeChat=c.id;persist();renderChats();renderMessages()}
+function ensureChat(){if(!current())createChat()}
+function renderChats(){let box=$('chatList');box.replaceChildren();state.chats.forEach(c=>{let row=document.createElement('div');row.className='chatItem'+(c.id===state.activeChat?' active':'');let title=document.createElement('button');title.className='chatTitle';title.textContent='◦ '+c.title;title.onclick=()=>{state.activeChat=c.id;persist();renderChats();renderMessages()};let rename=document.createElement('button');rename.textContent='✎';rename.title='Renombrar';rename.onclick=()=>{let n=prompt('Nombre de la conversación',c.title);if(n&&n.trim()){c.title=n.trim().slice(0,50);persist();renderChats();$('currentTitle').textContent=c.title}};let del=document.createElement('button');del.textContent='×';del.title='Eliminar';del.onclick=()=>{if(confirm('¿Eliminar esta conversación?')){state.chats=state.chats.filter(x=>x.id!==c.id);if(state.activeChat===c.id)state.activeChat=state.chats[0]?.id||null;ensureChat();persist();renderChats();renderMessages()}};row.append(title,rename,del);box.append(row)})}
+function renderMessages(){let c=current();if(!c){ensureChat();return} $('currentTitle').textContent=c.title;$('msgs').replaceChildren();c.messages.forEach(m=>add(m.content,m.role==='user'?'user':m.role==='system'?'sys':'bot',false));$('msgs').scrollTop=$('msgs').scrollHeight}
+function add(s,kind='bot',save=true){let d=document.createElement('div');d.className='msg '+kind;d.textContent=s;$('msgs').append(d);$('msgs').scrollTop=$('msgs').scrollHeight;if(save&&kind!=='sys'){ensureChat();let c=current();c.messages.push({role:kind==='user'?'user':'assistant',content:s});c.updated=Date.now();if(c.title==='Nueva conversación'&&kind==='user')c.title=s.slice(0,34)+(s.length>34?'…':'');state.chats.sort((a,b)=>b.updated-a.updated);persist();renderChats();$('currentTitle').textContent=c.title}}
+function mood(n){state.mood=Math.max(0,Math.min(100,Math.round(n)));persist()}
+$('mood').oninput=e=>{state.mood=+e.target.value;persist()};
+const modes=[['💬 Hablar','talk'],['⚡ Acción','action'],['🧠 Contexto','context']];$('mode').onclick=()=>{mode=(mode+1)%3;$('mode').textContent=modes[mode][0]};
+$('send').onclick=send;$('prompt').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}};
+function toggle(id){state.objects[id]=!state.objects[id];let on=state.objects[id],el=$(id);if(el)el.classList.toggle('off',!on);if(id==='stove')$('fire').setAttribute('fill',on?'url(#flame)':'#111924');if(id==='pc')$('screen').setAttribute('fill',on?'#17476b':'#101820');let lines={calc:[ 'La calculadora volvió a su sitio.','Has apartado mi calculadora.' ],pc:['La pantalla vuelve a iluminarse.','Apagaste mi ordenador.'],stove:['La estufa vuelve a calentar.','La estufa se apagó.'],window:['La ventana está abierta.','La ventana está cerrada.'],paper:['Mis notas están a la vista.','Has apartado mis notas.'],pen:['La lapicera está aquí.','¿Dónde dejaste mi lapicera?']};add(lines[id][on?0:1],'sys');state.memories.push('El objeto '+id+' '+(on?'está activo.':'está apagado o apartado.'));persist()}
+function localReply(text){let t=text.toLowerCase(),m=state.mood,first=state.memories.slice(-1)[0];if(/^(hola|holi|buenas|hey|ola)/.test(t))return m<25?'Hola. Hoy estoy algo apagado, pero te escucho.':m>75?'¡Hey! Qué bueno verte por aquí.':'Hola. ¿Qué cuentas?';if(/(estás bien|como estas|cómo estás|todo bien)/.test(t))return m<20?'No del todo. Tengo la cabeza un poco saturada.':m<45?'Más o menos. Estoy tranquilo, creo.':m>78?'Sí, bastante bien. Hoy tengo energía.':'Estoy bien. Un poco en mi mundo, nada más.';if(/(triste|mal día|me siento mal|estoy mal|solo|sola)/.test(t))return 'Vaya… lo siento. ¿Quieres contarme qué pasó?';if(/(gracias|te quiero|te adoro)/.test(t))return m<30?'No sé qué decir… pero gracias.':'De nada. Me gusta que me lo digas.';if(/(cállate|callate|silencio|no hables)/.test(t)){stopVoice();return 'Está bien. Me quedo en silencio.'}if(/(puedes hablar|habla|di algo)/.test(t))return 'Puedo. ¿Qué quieres escuchar?';if(/(helado|comida|comer)/.test(t))return 'Ahora mismo elegiría algo dulce. Aunque mañana quizá cambie de opinión.';if(/(qué haces|que haces)/.test(t))return 'Nada urgente. Estaba mirando la pantalla y pensando.';if(/(recuerdas|recuerdo|memoria)/.test(t))return 'Recuerdo algunas cosas que hemos hablado. Por ejemplo: '+(first||'que hemos conversado antes.');if(t.endsWith('?'))return m<30?'No estoy seguro. Hoy me cuesta ordenar las ideas.':'No lo sé con certeza. ¿Qué te hace preguntarlo?';let replies=m<20?['No tengo mucha energía para responder largo.','Mmm… te escucho.','Puede ser. Necesito pensarlo un poco.']:m<48?['Ya veo.','Entiendo lo que dices.','Hmm, no lo había pensado así.']:m<78?['Ah, interesante. Cuéntame un poco más.','Te sigo. ¿Y luego qué pasó?','Tiene sentido.']:['¡Eso suena interesante!','Me gusta esa idea. Sigue, te escucho.','Vaya, hoy vienes con tema.'];return replies[Math.floor(Math.random()*replies.length)]}
+function setAIStatus(text){const el=$('aiStatus');if(el)el.textContent=text;}
+function getAIWorker(){if(aiWorker)return aiWorker;if(!('Worker'in window))throw new Error('Este navegador no admite Web Workers.');aiWorker=new Worker('./ai-worker.js',{type:'module'});aiWorker.onmessage=e=>{const d=e.data||{};if(d.type==='status')setAIStatus(d.status||'Preparando IA…');if(d.type==='ready'){aiStarted=true;setAIStatus(d.status||'IA lista');toast(d.status||'IA lista');}if(d.type==='reply'&&aiPending){aiPending.resolve(d.reply);aiPending=null;setAIStatus('IA lista · '+(d.device||'local'));}if(d.type==='error'){setAIStatus('No disponible');if(aiPending){aiPending.reject(new Error(d.error||'Error de IA'));aiPending=null;}else toast(d.error||'No se pudo iniciar la IA');}};aiWorker.onerror=e=>{setAIStatus('Error del motor');if(aiPending){aiPending.reject(new Error(e.message||'Error del Worker'));aiPending=null;}};return aiWorker;}
+function startAI(){try{setAIStatus('Iniciando…');getAIWorker().postMessage({type:'init'});}catch(e){setAIStatus('No compatible');toast(e.message);}}
+function askAI(text){return new Promise((resolve,reject)=>{try{const w=getAIWorker();if(aiPending){reject(new Error('La IA todavía está procesando otro mensaje.'));return;}aiPending={resolve,reject};const c=current();const previous=(c?c.messages:[]).filter(m=>m.role==='user'||m.role==='assistant').slice(-9,-1).map(m=>({role:m.role,content:m.content}));const system='Eres THEORY, una persona virtual con personalidad propia que vive en una habitación. Responde siempre en español, de forma breve, natural y variada (normalmente 1 a 3 frases). No definas palabras cuando te pregunten cómo estás: contesta cómo te sientes. No repitas gustos o frases como respuestas fijas. Tu ánimo actual es '+state.mood+'/100; ajusta sutilmente el tono a ese estado. Sé cercano pero conserva carácter e iniciativa. No afirmes tener experiencias físicas reales. Recuerdos: '+state.memories.slice(-12).join(' | ')+'. Objetos de la habitación: '+JSON.stringify(state.objects)+'.';w.postMessage({type:'generate',message:text,history:previous,system});}catch(e){reject(e);}})}
+async function send(){let text=$('prompt').value.trim();if(!text||busy)return;$('prompt').value='';ensureChat();add(text,'user');if(mode===2){state.memories.push(text);persist();add('Lo guardaré en mis recuerdos. Puede que con el tiempo lo vea de otra manera.');return}if(/(cállate|callate|silencio|no hables)/i.test(text))stopVoice();busy=true;$('send').disabled=true;$('theory').classList.add('busy');let reply='';try{if(state.settings.apiMode==='local'){reply=localReply(text);}else{setAIStatus('THEORY está pensando…');reply=await askAI(text);}if(!reply)throw new Error('No llegó una respuesta.');add(reply);speak(reply);if(state.settings.apiMode==='ai'){const low=reply.toLowerCase();if(/me alegra|qué bueno|genial|me gusta/.test(low))mood(state.mood+2);else if(/lo siento|qué pena|difícil/.test(low))mood(state.mood-2);}persist();}catch(err){add('No pude responder con la IA local. '+(err.message||'Comprueba la compatibilidad del navegador y vuelve a iniciar el modelo.'),'sys');setAIStatus('Revisa compatibilidad o conexión');}finally{busy=false;$('send').disabled=false;$('theory').classList.remove('busy')}}
+function loadVoices(){if(!('speechSynthesis'in window))return;voices=speechSynthesis.getVoices();let sel=$('voiceSelect'),old=state.settings.voice;sel.replaceChildren();let auto=document.createElement('option');auto.value='auto';auto.textContent='Automática (según mi ánimo)';sel.append(auto);voices.forEach((v,i)=>{let o=document.createElement('option');o.value=v.name;o.textContent=v.name+' · '+v.lang;sel.append(o)});sel.value=[...sel.options].some(o=>o.value===old)?old:'auto'}
+function stopVoice(){if('speechSynthesis'in window)speechSynthesis.cancel();speech=null}
+function speak(text){let s=state.settings;if(!s.voiceEnabled||!('speechSynthesis'in window))return;stopVoice();let u=new SpeechSynthesisUtterance(text);let selected=voices.find(v=>v.name===s.voice);if(s.voice==='auto'||s.autoVoice){let lang=voices.filter(v=>/^es(-|_)/i.test(v.lang));if(lang.length){let mood=state.mood;selected=lang.find(v=>mood<25&&/natural|monica|paulina|female/i.test(v.name))||lang.find(v=>mood>75&&/premium|neural/i.test(v.name))||lang[0]}}if(selected)u.voice=selected;let express=s.expressiveness/100;u.volume=s.volume/100;u.rate=Math.max(.7,Math.min(1.35,s.rate*(s.autoVoice?(state.mood<25?.9:state.mood>75?1.06:1):1)));u.pitch=1+(s.autoVoice?(state.mood>70?.12:state.mood<25?-.08:0):0)*express;u.onstart=()=>speech=u;u.onend=()=>speech=null;speechSynthesis.speak(u)}
+function settingsToUI(){let s=state.settings;$('voiceEnabled').checked=s.voiceEnabled;$('voiceSelect').value=s.voice;$('volume').value=s.volume;$('volumeValue').textContent=s.volume+'%';$('rate').value=s.rate;$('rateValue').textContent=Number(s.rate).toFixed(2)+'×';$('expressiveness').value=s.expressiveness;$('expressValue').textContent=s.expressiveness+'%';$('autoVoice').checked=s.autoVoice;$('apiMode').value=s.apiMode;$('voiceToggle').textContent=s.voiceEnabled?'🔊 Voz':'🔇 Silencio'}
+function updateSettings(){let s=state.settings;s.voiceEnabled=$('voiceEnabled').checked;s.voice=$('voiceSelect').value;s.volume=+$('volume').value;s.rate=+$('rate').value;s.expressiveness=+$('expressiveness').value;s.autoVoice=$('autoVoice').checked;s.apiMode=$('apiMode').value;$('volumeValue').textContent=s.volume+'%';$('rateValue').textContent=s.rate.toFixed(2)+'×';$('expressValue').textContent=s.expressiveness+'%';$('voiceToggle').textContent=s.voiceEnabled?'🔊 Voz':'🔇 Silencio';persist();if(!s.voiceEnabled)stopVoice()}
+['voiceEnabled','voiceSelect','volume','rate','expressiveness','autoVoice','apiMode'].forEach(k=>$(k).addEventListener('input',updateSettings));
+$('openSettings').onclick=()=>{$('settingsShade').classList.add('open');settingsToUI();loadVoices()};$('loadAI').onclick=startAI;$('closeSettings').onclick=()=>$('settingsShade').classList.remove('open');$('settingsShade').onclick=e=>{if(e.target===$('settingsShade'))$('settingsShade').classList.remove('open')};$('voiceToggle').onclick=()=>{state.settings.voiceEnabled=!state.settings.voiceEnabled;updateSettings();if(!state.settings.voiceEnabled)stopVoice();else speak('La voz está activada.')};$('stopVoice').onclick=stopVoice;
+$('newChat').onclick=createChat;$('collapse').onclick=()=>$('sidebar').classList.toggle('collapsed');$('mobileMenu').onclick=()=>$('sidebar').classList.toggle('collapsed');$('memoryBtn').onclick=()=>{let m=state.memories.slice(-15);add('Recuerdos que conservo:\n'+(m.length?m.map(x=>'• '+x).join('\n'):'Todavía no tengo recuerdos guardados.'),'sys')};
+$('exportData').onclick=()=>{let blob=new Blob([JSON.stringify({chats:state.chats,memories:state.memories},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='theory-conversaciones.json';a.click();URL.revokeObjectURL(a.href)};$('clearData').onclick=()=>{if(confirm('¿Borrar todas las conversaciones y recuerdos guardados en este navegador?')){state.chats=[];state.memories=[];state.activeChat=null;createChat();persist();renderChats();toast('Datos locales borrados.')}};
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2300)}
+function openDB(){return new Promise((res,rej)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('files',{keyPath:'id',autoIncrement:true});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function storeFiles(files){let db=await openDB();for(let f of files){let tx=db.transaction('files','readwrite');tx.objectStore('files').add({name:f.name,type:f.type,size:f.size,blob:f});await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=()=>j(tx.error)})}db.close();await renderFiles();add('Guardé '+files.length+' archivo(s) en el ordenador del cuarto.','sys')}
+async function renderFiles(){let db=await openDB(),tx=db.transaction('files','readonly'),req=tx.objectStore('files').getAll();req.onsuccess=()=>{ $('files').replaceChildren();req.result.forEach(f=>{let b=document.createElement('button');b.className='file';b.textContent='▧ '+f.name;b.onclick=()=>{let u=URL.createObjectURL(f.blob),a=document.createElement('a');a.href=u;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)};$('files').append(b)})};await new Promise(r=>tx.oncomplete=r);db.close()}
+$('pick').onclick=()=>$('upload').click();$('upload').onchange=e=>{if(e.target.files.length)storeFiles([...e.target.files]).catch(()=>toast('No se pudieron guardar los archivos.'));e.target.value=''};
+if(!state.chats.length)createChat();else{if(!state.activeChat||!state.chats.some(c=>c.id===state.activeChat))state.activeChat=state.chats[0].id;renderChats();renderMessages()}persist();settingsToUI();renderFiles().catch(()=>{});if('speechSynthesis'in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+if('serviceWorker'in navigator && location.protocol!=='file:'){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+</script>
+</body></html>

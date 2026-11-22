@@ -1,0 +1,11 @@
+{
+  "name": "THEORY // AI",
+  "short_name": "THEORY",
+  "description": "Habitación interactiva y asistente local THEORY.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070b12",
+  "theme_color": "#080d14",
+  "icons": []
+}

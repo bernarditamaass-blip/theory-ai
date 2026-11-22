@@ -1,0 +1,30 @@
+THEORY // AI — paquete universal con IA local
+
+ARCHIVOS
+- index.html: interfaz completa de THEORY.
+- ai-worker.js: ejecuta el modelo de lenguaje en el navegador.
+- manifest.webmanifest: permite instalar la web como aplicación (PWA).
+- sw.js: guarda en caché los archivos básicos de la aplicación.
+
+PUBLICACIÓN
+1. Descomprime este ZIP.
+2. Sube TODOS los archivos manteniendo la misma carpeta/raíz a un alojamiento estático HTTPS que permita publicar archivos HTML, JS y JSON (por ejemplo, GitHub Pages, Cloudflare Pages o Netlify).
+3. Abre la URL HTTPS publicada.
+4. En THEORY, abre Ajustes y pulsa «Descargar / iniciar IA».
+5. La primera vez necesita Internet para descargar el motor y el modelo. Espera a que indique «IA lista».
+6. Después puedes conversar. El navegador puede conservar los recursos descargados en su caché.
+
+IMPORTANTE: No es posible prometer que el modelo funcione en absolutamente todos los dispositivos. Intenta WebGPU y, si no está disponible, WebAssembly/CPU. Algunos teléfonos o navegadores pueden carecer de memoria o compatibilidad. El modelo es grande y la primera descarga puede tardar y consumir datos. No hay clave API ni coste por mensaje; el alojamiento estático elegido puede tener sus propias condiciones y límites.
+
+PRIVACIDAD Y DATOS
+- Las conversaciones y recuerdos se guardan en el almacenamiento local del navegador.
+- El modelo se descarga desde jsDelivr y Hugging Face; el navegador necesita conectarse a esos servicios para descargarlo.
+- El contenido de las conversaciones se procesa localmente en el dispositivo y no se envía a una API de inferencia.
+- Si borras los datos del navegador, puedes perder conversaciones y recuerdos locales.
+
+COMPATIBILIDAD
+- Se necesita HTTPS (o localhost) para Service Worker y PWA.
+- La IA requiere un navegador moderno con WebGPU o WebAssembly y suficiente memoria. El modo WASM/CPU es más lento.
+- La voz usa SpeechSynthesis y las voces instaladas en el sistema/navegador.
+
+Este paquete no incluye servicios de alojamiento ni garantiza soporte de todos los navegadores. La compatibilidad real depende del equipo, navegador, memoria disponible y disponibilidad de las descargas del modelo.
